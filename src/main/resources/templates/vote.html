@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Vote nos Animes da Temporada</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        .card {
+            background-color: #1e1e1e;
+            border: 1px solid #007bff;
+            border-radius: 8px;
+            margin: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            max-width: 600px;
+        }
+        .card img {
+            max-width: 150px;
+            margin-right: 20px;
+            border-radius: 8px;
+        }
+        .card h2 {
+            font-size: 1.5em;
+            margin: 0 0 10px 0;
+            color: #ffffff;
+        }
+        .card p {
+            margin: 5px 0;
+            color: #b0b0b0;
+        }
+        .card a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .synopsis {
+            max-height: 60px;
+            overflow: hidden;
+            position: relative;
+        }
+        .synopsis::after {
+            content: "...";
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            padding: 0 10px;
+            background: linear-gradient(to left, #1e1e1e, rgba(30, 30, 30, 0));
+        }
+        .synopsis.expanded {
+            max-height: none;
+            overflow: visible;
+        }
+        .read-more {
+            cursor: pointer;
+            color: #007bff;
+        }
+        .custom-radio {
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+        }
+        .custom-radio input {
+            margin-right: 10px;
+        }
+        .floating-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<h1 class="text-center mb-4 text-primary">Vote nos Animes da Temporada</h1>
+<form action="/vote-name" method="get" id="voteForm">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 mb-4" th:each="anime : ${animes}">
+                <div class="card">
+                    <div class="custom-radio">
+                        <input name="animeId" required th:value="${anime.malId}" type="radio" onclick="toggleVoteButton()">
+                    </div>
+                    <img alt="Anime Image" th:src="${anime.images.jpg.image_url}"/>
+                    <div>
+                        <h2 th:text="${anime.title}">Anime Title</h2>
+                        <div class="synopsis" th:utext="${anime.synopsis}">Anime Synopsis</div>
+                        <p class="read-more" onclick="toggleSynopsis(this)">Leia mais</p>
+                        <p th:if="${anime.url}">
+                            <a th:href="${anime.url}" th:text="'LINK DO MAL'">LINK DO MAL</a>
+                        </p>
+                        <p th:if="${anime.score != null}" th:text="'Score: ' + ${anime.score}">Anime Score</p>
+                        <p th:if="${anime.members != null}" th:text="'Members: ' + ${anime.members}">Anime Members</p>
+                        <p th:if="${anime.broadcast.string != null}" th:text="'Broadcast: ' + ${anime.broadcast.string}">Broadcast</p>
+                        <p th:if="${anime.studios != null}">
+                            Studios:
+                            <span th:each="studio : ${anime.studios}" th:text="${studio.name} + ' '"></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary btn-block floating-btn" id="voteButton">Vote</button>
+</form>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    function toggleSynopsis(element) {
+        const synopsis = element.previousElementSibling;
+        if (synopsis.classList.contains('expanded')) {
+            synopsis.classList.remove('expanded');
+            element.textContent = 'Leia mais';
+        } else {
+            synopsis.classList.add('expanded');
+            element.textContent = 'Leia menos';
+        }
+    }
+
+    function toggleVoteButton() {
+        const voteButton = document.getElementById('voteButton');
+        const radios = document.querySelectorAll('input[name="animeId"]');
+        let isChecked = false;
+        radios.forEach((radio) => {
+            if (radio.checked) {
+                isChecked = true;
+            }
+        });
+        if (isChecked) {
+            voteButton.style.display = 'block';
+        } else {
+            voteButton.style.display = 'none';
+        }
+    }
+</script>
+</body>
+</html>
