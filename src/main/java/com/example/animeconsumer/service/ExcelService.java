@@ -1,71 +1,55 @@
 package com.example.animeconsumer.service;
 
-import com.example.animeconsumer.domain.Anime;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import com.example.animeconsumer.domain.Vote;
+import com.example.animeconsumer.domain.Anime;
+import com.example.animeconsumer.adapters.out.mongodb.VoteRepository;
+import com.example.animeconsumer.service.AnimeService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
 
 @Service
 public class ExcelService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ExcelService.class);
-    private static final String[] COLUMN_HEADERS = {"ID", "Mal ID", "Title", "Synopsis", "Score", "Members", "Broadcast", "Studios", "Images", "URL"};
-    private static final String FILE_PATH = "animes.xlsx";
-    private final Workbook workbook;
-    private final Sheet sheet;
-    private final AtomicInteger rowCount;
+    @Autowired
+    private VoteRepository voteRepository;
 
-    public ExcelService() {
-        workbook = new XSSFWorkbook();
-        sheet = workbook.createSheet("Animes");
-        rowCount = new AtomicInteger(0);
-        createHeaderRow();
-    }
+    @Autowired
+    private AnimeService animeService;
 
-    private void createHeaderRow() {
-        Row headerRow = sheet.createRow(rowCount.getAndIncrement());
-        for (int i = 0; i < COLUMN_HEADERS.length; i++) {
-            Cell cell = headerRow.createCell(i);
-            cell.setCellValue(COLUMN_HEADERS[i]);
+    public void exportVotesToExcel(String templatePath, String filePath) throws IOException {
+        // Carregar o template de Excel
+        FileInputStream fis = new FileInputStream(templatePath);
+        Workbook workbook = new XSSFWorkbook(fis);
+        Sheet sheet = workbook.getSheetAt(0);
+
+        // Buscar todos os votos
+        List<Vote> votes = voteRepository.findAll();
+        int rowCount = 2; // Começar na linha 3 (índice 2)
+
+        for (Vote vote : votes) {
+            Row row = sheet.createRow(rowCount++);
+
+            // Buscar informações adicionais do anime
+            Anime anime = animeService.getAnimeById(vote.getAnimeId());
+
+            Cell cell1 = row.createCell(1); // Coluna B
+            cell1.setCellValue(anime.getTitle());
+
+            Cell cell2 = row.createCell(2); // Coluna C
+            cell2.setCellValue(vote.getName());
         }
-        logger.info("Cabeçalho criado com sucesso.");
-    }
 
-    public void writeAnimeToExcel(Anime anime) {
-        logger.info("Iniciando a escrita do anime no Excel: " + anime);
-        try {
-            Row row = sheet.createRow(rowCount.getAndIncrement());
-
-            row.createCell(0).setCellValue(anime.getId());
-            row.createCell(1).setCellValue(anime.getMalId());
-            row.createCell(2).setCellValue(anime.getTitle());
-            row.createCell(3).setCellValue(anime.getSynopsis());
-            row.createCell(4).setCellValue(anime.getScore());
-            row.createCell(5).setCellValue(anime.getMembers());
-            /*row.createCell(6).setCellValue(anime.getBroadcast() != null ? anime.getBroadcast().toString() : "N/A");
-            row.createCell(7).setCellValue(anime.getStudios() != null ? anime.getStudios().toString() : "N/A");
-            row.createCell(8).setCellValue(anime.getImages() != null ? anime.getImages().toString() : "N/A");*/
-            row.createCell(9).setCellValue(anime.getUrl());
-
-            saveExcelFile();
-            logger.info("Dados do anime {} foram escritos no Excel", anime.getTitle());
-        } catch (Exception e) {
-            logger.error("Erro ao escrever dados no Excel", e);
-        }
-    }
-
-    private void saveExcelFile() {
-        try (FileOutputStream fileOut = new FileOutputStream(FILE_PATH)) {
+        // Salvar o arquivo preenchido
+        try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
             workbook.write(fileOut);
-            logger.info("Arquivo Excel salvo com sucesso em {}", FILE_PATH);
-        } catch (IOException e) {
-            logger.error("Erro ao salvar o arquivo Excel", e);
         }
+        workbook.close();
     }
 }

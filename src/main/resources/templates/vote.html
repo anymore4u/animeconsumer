@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Vote nos Animes da Temporada</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -97,7 +98,7 @@
                         <div class="synopsis" th:utext="${anime.synopsis}">Anime Synopsis</div>
                         <p class="read-more" onclick="toggleSynopsis(this)">Leia mais</p>
                         <p th:if="${anime.url}">
-                            <a th:href="${anime.url}" th:text="'LINK DO MAL'">LINK DO MAL</a>
+                            <a th:href="${anime.url}" th:text="'LINK DO MAL'" target="_blank">LINK DO MAL</a>
                         </p>
                         <p th:if="${anime.score != null}" th:text="'Score: ' + ${anime.score}">Anime Score</p>
                         <p th:if="${anime.members != null}" th:text="'Members: ' + ${anime.members}">Anime Members</p>

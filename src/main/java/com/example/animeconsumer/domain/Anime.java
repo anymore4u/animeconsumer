@@ -40,6 +40,11 @@ public class Anime {
 
     @JsonProperty("url")
     private String url;
+
+    @JsonProperty("status")
+    private String status;
+
+    private long offset;
 }
 
 @Data
